@@ -5,8 +5,18 @@ Simulation::Simulation()
     // default values
     temperature = 300.0;
     
-    nucleatorBeadRadius = 1.5*0.5;
-    
+    //nucleatorBeadRadius = 1.5*0.5;
+    //nucleator Bead Axes----------------------------------------------------------------------------//
+    double A = 0.5 * 0.5;
+    double B = 0.5 * 0.5;
+    double C = 2.0 * 0.5;
+
+    const Coordinate nucleatorBeadAxes = {A,B,C}; //not a coordinate per se, just a convenient way to store the axes
+    //--------------------------------------------------------------------------------------------//
+
+
+
+
     eta = 0.301;
     numMonomersPerBead = 0;
     dt = 0.1;
@@ -14,7 +24,7 @@ Simulation::Simulation()
     snapshotTime = 0.01;
     persistenceLength = 17.0;
     
-    nucleatorFilamentInteractionDist = rRepulsiveInteraction*0.5 + nucleatorBeadRadius;
+    //nucleatorFilamentInteractionDist = rRepulsiveInteraction*0.5 + nucleatorBeadRadius;
     
     numThreads = 1;
     thermalForcesOn = true;
@@ -886,7 +896,7 @@ double Simulation::calcForces()
                 
                 double minDist = d_kl.getMagnitude();					
 
-                if(minDist < nucleatorFilamentInteractionDist)
+                if(minDist < nucleatorFilamentInteractionDist) //force on nucleatorBead is calculated here. 
                 {
                     // withinRangeCount++;
                     double forceMag = 0.0;

@@ -15,7 +15,10 @@ class Rotation{
 
         std::vector <struct Quaternion> q_bins; //quaternion bins
 
+
     public:
         Rotation();
         Rotation(int numRotatingParticles, double a, double b, double c);
+
+        Coordinate returnInteractionSite(Coordinate beadCenter, Coordinate particle, Coordinate beadAxes);
 };
