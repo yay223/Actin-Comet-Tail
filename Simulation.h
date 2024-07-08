@@ -16,6 +16,7 @@
 #include "MiscStructs.h"
 #include "Filament.h"
 #include "SpringBondInfo.h"
+#include "Rotation.h"
 
 using namespace std;
 
@@ -124,6 +125,10 @@ class Simulation
         std::vector <std::mt19937> generators;
         
         std::vector<std::vector <Coordinate>> tempForces;
+
+        //-----------------------------------//
+        std::vector<std::vector <Coordinate>> tempTorques;
+        //-----------------------------------//
         
         std::vector<std::vector <Coordinate>> tempStresses;
         
@@ -200,7 +205,7 @@ class Simulation
         int addBondFindNeighborsNoRemoval(Bond newBond);
         
         Coordinate closestDistanceBetweenLineAndPoint(Coordinate a0, Coordinate a1, Coordinate b, Coordinate &aClose);
-		
+
 		void capFilaments(double time_between_attempts);
         
         void writeLAMMPS(ofstream& outputLAMMPS);

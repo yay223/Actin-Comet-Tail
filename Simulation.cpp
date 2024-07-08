@@ -14,8 +14,13 @@ Simulation::Simulation()
     const Coordinate nucleatorBeadAxes = {A,B,C}; //not a coordinate per se, just a convenient way to store the axes
     //--------------------------------------------------------------------------------------------//
 
+    //bead interaction region axes------------------------------------------------------------------// essentially a bigger ellipsoid with center coinciding with the nucleator bead
+    double rA = A + rRepulsiveInteraction*0.5;
+    double rB = B + rRepulsiveInteraction*0.5;
+    double rC = C + rRepulsiveInteraction*0.5;
 
-
+    const Coordinate beadInteractoinRegionAxes = {rA, rB, rC};
+    //--------------------------------------------------------------------------------------------//
 
     eta = 0.301;
     numMonomersPerBead = 0;
@@ -860,6 +865,24 @@ double Simulation::calcForces()
             }
         }
     }
+
+    // ---------------------------------------------------------------------------//
+    if(tempTorques[0].size() != numParticles)
+    {
+        //#pragma omp parallel for
+        for(int thread = 0; thread < omp_get_max_threads(); thread++)
+        {
+            int oldSize = tempTorques[thread].size();
+            
+            tempTorques[thread].resize(pinfo.getNumParticles());
+            for(int i = oldSize; i < pinfo.getNumParticles(); i++)
+            {
+                tempTorques[thread][i] = Coordinate {0.0, 0.0, 0.0};
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------------------//
     
 	// calculate other forces using a scheduler based on the bins they are in
     // or by using tempForces vector (this uses more memory)
@@ -892,9 +915,21 @@ double Simulation::calcForces()
                 // excluded volume with nucleator bead
                 Coordinate closestK;
                     
-                Coordinate d_kl = closestDistanceBetweenLineAndPoint(ri, rj, pinfo.getPos(0), closestK);
+                Coordinate d_kl = closestDistanceBetweenLineAndPoint(ri, rj, pinfo.getPos(0), closestK); //need this to update closestK to be used in the functions in next two lines
+
+                Coordinate pointOnBeadClosestToFilament = Rotation::returnInteractionSite(pinfo.getPos(0), closestK, nucleatorBeadAxes); //interaction site on nucleator bead
+                Coordinate pointOnInteractionRegionBead = Rotation::returnInteractionSite(pinfo.getPos(0), closestK, beadInteractoinRegionAxes); //coordinate of the point on interaction ellipsioid on the line joining particlePos(closestK)
                 
-                double minDist = d_kl.getMagnitude();					
+                /*Coordinate minDistVec = closestK - pointOnBeadClosestToFilament; //particlePos-R
+                Coordinate interactionRegionMinDistVec = pointOnInteractionRegionBead - pointOnBeadClosestToFilament; //rR-R
+
+                //double minDist = d_kl.getMagnitude();
+                double minDist = minDistVec.getMagnitude();
+                double nucleatorFilamentInteractionDist = interactionRegionMinDistVec.getMagnitude();
+                */
+
+               double minDist = simBox.calcDistance(closestK, pointOnBeadClosestToFilament);
+               double nucleatorFilamentInteractionDist = simBox.calcDistance(pointOnInteractionRegionBead, pointOnBeadClosestToFilament);
 
                 if(minDist < nucleatorFilamentInteractionDist) //force on nucleatorBead is calculated here. 
                 {
@@ -905,7 +940,13 @@ double Simulation::calcForces()
 
                     forceMag = kr * (minDist - nucleatorFilamentInteractionDist);
 
-                    Coordinate Fr = forceMag * d_kl.getUnitCoord();
+                    //Coordinate Fr = forceMag * d_kl.getUnitCoord();
+                    
+                    Coordinate Fr = forceMag * pointOnBeadClosestToFilament.getUnitCoord();
+
+                    //Torque--------------------------------------------------------------------//
+                    Coordinate Nr = pointOnInteractionRegionBead.crossProduct(Fr); //N is the notation for torqueused by Rapport in the book
+                    //-------------------------------------------------------------------//
                     
                     double length_k = rij.getMagnitude();
                     
@@ -919,7 +960,10 @@ double Simulation::calcForces()
                     tempForces[omp_get_thread_num()][pinfo.getIndexOfTag(currTag)] = tempForces[omp_get_thread_num()][pinfo.getIndexOfTag(currTag)] + Falpha;
                     tempForces[omp_get_thread_num()][pinfo.getIndexOfTag(tempBondList[b].j)] = tempForces[omp_get_thread_num()][pinfo.getIndexOfTag(tempBondList[b].j)] + Fbeta;
                     
-                    tempForces[omp_get_thread_num()][0] = tempForces[omp_get_thread_num()][0] - Fr;
+                    tempForces[omp_get_thread_num()][0] = tempForces[omp_get_thread_num()][0] - Fr; //nucleating bead forces, calculate torques on interaction sites here
+                    //Torque--------------------------------------------------------------------//
+                    tempTorques[omp_get_thread_num()][0] = tempTorques[omp_get_thread_num()][0] + Nr;
+                    //-------------------------------------------------------------------//
                 }
                 // end of excluded volume
                 
