@@ -11,7 +11,7 @@ Simulation::Simulation()
     double B = 0.5 * 0.5;
     double C = 2.0 * 0.5;
 
-    const Coordinate nucleatorBeadAxes = {A,B,C}; //not a coordinate per se, just a convenient way to store the axes
+    nucleatorBeadAxes = {A,B,C}; //not a coordinate per se, just a convenient way to store the axes
     //--------------------------------------------------------------------------------------------//
 
     //bead interaction region axes------------------------------------------------------------------// essentially a bigger ellipsoid with center coinciding with the nucleator bead
@@ -19,7 +19,7 @@ Simulation::Simulation()
     double rB = B + rRepulsiveInteraction*0.5;
     double rC = C + rRepulsiveInteraction*0.5;
 
-    const Coordinate beadInteractoinRegionAxes = {rA, rB, rC};
+    beadInteractoinRegionAxes = {rA, rB, rC};
     //--------------------------------------------------------------------------------------------//
 
     eta = 0.301;
@@ -917,8 +917,8 @@ double Simulation::calcForces()
                     
                 Coordinate d_kl = closestDistanceBetweenLineAndPoint(ri, rj, pinfo.getPos(0), closestK); //need this to update closestK to be used in the functions in next two lines
 
-                Coordinate pointOnBeadClosestToFilament = Rotation::returnInteractionSite(pinfo.getPos(0), closestK, nucleatorBeadAxes); //interaction site on nucleator bead
-                Coordinate pointOnInteractionRegionBead = Rotation::returnInteractionSite(pinfo.getPos(0), closestK, beadInteractoinRegionAxes); //coordinate of the point on interaction ellipsioid on the line joining particlePos(closestK)
+                Coordinate pointOnBeadClosestToFilament = rotation.returnInteractionSite(pinfo.getPos(0), closestK, nucleatorBeadAxes); //interaction site on nucleator bead
+                Coordinate pointOnInteractionRegionBead = rotation.returnInteractionSite(pinfo.getPos(0), closestK, beadInteractoinRegionAxes); //coordinate of the point on interaction ellipsioid on the line joining particlePos(closestK)
                 
                 /*Coordinate minDistVec = closestK - pointOnBeadClosestToFilament; //particlePos-R
                 Coordinate interactionRegionMinDistVec = pointOnInteractionRegionBead - pointOnBeadClosestToFilament; //rR-R
@@ -1251,6 +1251,8 @@ double Simulation::calcForces()
 
                             Coordinate Fr = forceMag * d_kl.getUnitCoord();
                             
+                            
+
                             double length_k = R_k.getMagnitude();
                             
                             double firstSegmentLength = simBox.calcDistance(closestK, rj);

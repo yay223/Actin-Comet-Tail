@@ -56,6 +56,13 @@ class Simulation
         double snapshotTime;
         double currSimTime;
         
+
+        //-----------------------------------//
+        Coordinate nucleatorBeadAxes;
+        Coordinate beadInteractoinRegionAxes;
+        //-----------------------------------//
+
+
         double severingDistanceMultiplier;
         double forceMyosin;
         
@@ -138,6 +145,9 @@ class Simulation
         double nascentFAUnbindProbability;
         
         int starting_bond_type = 4+5;
+        //-----------------------------------//
+        Rotation rotation;
+        //-----------------------------------//
 
 	public:
 		Simulation();
