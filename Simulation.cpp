@@ -1963,7 +1963,7 @@ void Simulation::addRandomFilament(bool crosslinkNeighboring)
 }
 
 
-void Simulation::addFilamentTouchingNucleatorBead(bool crosslinkNeighboring)
+/*void Simulation::addFilamentTouchingNucleatorBead(bool crosslinkNeighboring)
 {
     // assumes that the nucleator bead is always the first bead in pinfo
     Coordinate nucleatorBeadPos = pinfo.getPosByIndex(0);
@@ -2001,6 +2001,26 @@ void Simulation::addFilamentTouchingNucleatorBead(bool crosslinkNeighboring)
         //then direction is pointing into the sphere
         pointedEnd = surfaceTouchPoint + 2.7E-3*(starting_bond_type-3) * (-direction) * (filamentNumBeads - 1);
     }
+    
+    addFilamentSpecifyBondType(filamentNumBeads, pointedEnd, direction, crosslinkNeighboring, starting_bond_type);
+}*/
+
+void Simulation::addFilamentTouchingNucleatorBead(bool crosslinkNeighboring)
+{
+    // assumes that the nucleator bead is always the first bead in pinfo
+    Coordinate nucleatorBeadPos = pinfo.getPosByIndex(0);
+
+    std::mt19937& threadEngine = generators[omp_get_thread_num()];
+    
+    double randTheta = (dis(threadEngine)-0.5)*pi;
+    double randPhi = 2.0*pi*dis(threadEngine);
+    Coordinate randUnitVector = Coordinate {sin(randTheta)*cos(randPhi), sin(randTheta)*sin(randPhi), cos(randTheta)};
+    
+    Coordinate direction = randUnitVector;
+    
+    int filamentNumBeads = 2;
+    
+    Coordinate pointedEnd = nucleatorBeadPos + nucleatorBeadRadius * randUnitVector;
     
     addFilamentSpecifyBondType(filamentNumBeads, pointedEnd, direction, crosslinkNeighboring, starting_bond_type);
 }
